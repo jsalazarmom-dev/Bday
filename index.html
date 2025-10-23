@@ -126,6 +126,39 @@
     mix-blend-mode:screen;opacity:.8;filter:blur(14px);
   }
 
+  /* Activation popup */
+  #activationPopup{
+    display:none;
+    position:fixed;
+    inset:0;
+    align-items:center;
+    justify-content:center;
+    z-index:2000;
+    background:rgba(0,0,0,0.55);
+  }
+  #activationPopup .popup-card{
+    background:#07171a;padding:16px;border-radius:10px;color:var(--muted);min-width:300px;
+    max-width:92%;
+  }
+  /* confetti image styling inside activation popup */
+  .popup-media {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+  }
+  .popup-media .popup-title{
+    font-weight:900;color:#bfe6ff;font-size:1.1rem;
+  }
+  .popup-media .popup-gif{
+    width:100%;
+    max-width:420px; /* maximum rendered width */
+    height:auto;
+    border-radius:8px;
+    display:block;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.5);
+  }
+
   @media (max-width:900px){
     .container{grid-template-columns:1fr; padding:12px; gap:10px}
     aside{order:3}
@@ -136,6 +169,7 @@
     .btn.blue-large{min-width:180px;padding:12px 18px}
     .zurg-card{padding:14px}
     .zurg-title{font-size:1.05rem}
+    .popup-media .popup-gif{max-width:320px}
   }
 </style>
 </head>
@@ -229,8 +263,8 @@
   </div>
 
   <!-- Activation popup -->
-  <div id="activationPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;z-index:2000">
-    <div style="background:#07171a;padding:16px;border-radius:10px;color:var(--muted);min-width:300px">
+  <div id="activationPopup" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:2000">
+    <div class="popup-card">
       <div id="activationMessage" style="font-weight:800;color:var(--accent)"></div>
       <div style="display:flex;justify-content:flex-end;margin-top:12px"><button id="closeActivationPopup" class="btn blue-large">OK</button></div>
     </div>
@@ -514,7 +548,12 @@
   function showActivationPopup(msg, html=false){
     if(html) activationMessage.innerHTML = msg; else activationMessage.textContent = msg;
     activationPopup.style.display = 'flex';
-    closeActivationPopup.focus();
+    // If html contains the popup-media layout, ensure sizing + center
+    const popupCard = activationPopup.querySelector('.popup-card');
+    if(popupCard){
+      // If provided HTML contains .popup-media, ensure OK button is focused
+      setTimeout(()=> closeActivationPopup.focus(), 50);
+    }
   }
   function hideActivationPopup(){ activationPopup.style.display = 'none'; }
 
@@ -533,9 +572,10 @@
       showActivationPopup("Zurg: 'Do not poke the ray.'");
       prependLogEntry('Ray box poked while active (blocked)', new Date());
     } else {
-      const html = `<div style="text-align:center">
-        <div style="font-size:1.1rem;font-weight:900;color:#bfe6ff;margin-bottom:8px">Happy 10th Birthday Audria!</div>
-        <img src="https://media.giphy.com/media/5jT0jaNDsM6Ik7X9yq/giphy.gif" style="max-width:320px;border-radius:8px" alt="confetti"/>
+      // New popup HTML — uses the responsive .popup-media layout and bounded max-width
+      const html = `<div class="popup-media" style="text-align:center">
+        <div class="popup-title">Happy 10th Birthday Audria!</div>
+        <img class="popup-gif" src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHhleWxlbmlzMnI0cG5kcmc5c3FsY2lhNnZtbmprZzVnbjNkOGVteCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/879RsXB8GvEuY95LNl/giphy.gif" alt="confetti gif">
       </div>`;
       showActivationPopup(html, true);
       prependLogEntry('Audria action pressed — confetti shown', new Date());
