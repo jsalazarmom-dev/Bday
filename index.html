@@ -462,11 +462,11 @@
       return;
     }
 
-    // Special game commands preserved
+    // Special game commands preserved BUT do not write to the audit log
     if(p === 'change'){
       totalSeconds = 1800;
       closeZurgPopup();
-      prependLogEntry('Zurg command: change -> countdown set to 30 minutes', new Date());
+      // intentionally NOT logged per request
       showActivationPopup('Countdown reset to 30 minutes');
       startCountdown();
       return;
@@ -478,7 +478,7 @@
         const m = parseInt(n,10);
         if(Number.isInteger(m) && m >=1 && m <= 1440){
           totalSeconds = m*60;
-          prependLogEntry(`Zurg override: countdown reset to ${m} minute(s)`, new Date());
+          // intentionally NOT logged per request
           showActivationPopup(`Countdown reset to ${m} minute${m===1?'':'s'}`);
           startCountdown();
         } else alert("Invalid time. Please enter a number between 1 and 1440.");
