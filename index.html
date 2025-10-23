@@ -428,6 +428,13 @@
     prependLogEntry('Deactivation sound ended — blue self-destruction state engaged', new Date());
   });
 
+  // ---- please counter logic ----
+  // Allow +30s twice. On third "please", show "Don't be greedy, now you lost 45 seconds."
+  let pleaseCount = 0;
+  const PLEASE_MAX = 2;
+  const PLEASE_BONUS = 30; // seconds added for allowed pleas
+  const PLEASE_PENALTY = 45; // seconds deducted when greedy
+
   // Unified Zurg auth handler - unlimited attempts allowed
   function openZurgPopup(){
     zurgError.textContent = '';
@@ -490,7 +497,9 @@
     const lower = p;
     if(lower === 'audria'){
       playWrong();
-      zurgError.textContent = "Zurg: 'Audria? Not in this sector.'";
+      // Updated message per request:
+      const audMsg = "how dare you think you are that important";
+      zurgError.textContent = `Zurg: '${audMsg}'`;
       prependLogEntry('Grunt attempt: "audria" — mocked celebration', new Date());
       zurgInput.focus();
       zurgInput.select();
@@ -515,12 +524,22 @@
       return;
     }
 
+    // NEW: "please" handling with limited bonuses then penalty
     if(lower === 'please' || lower === 'plase'){
       playWrong();
-      totalSeconds += 30;
-      zurgError.textContent = "Zurg amused: 'You beg? +30s.'";
-      prependLogEntry('Grunt attempted "please" — system grants +30s mock penalty', new Date());
-      startCountdown();
+      if(pleaseCount < PLEASE_MAX){
+        pleaseCount += 1;
+        totalSeconds += PLEASE_BONUS;
+        zurgError.textContent = `Zurg amused: 'You beg? +${PLEASE_BONUS}s.'`;
+        prependLogEntry(`Grunt attempted "please" — +${PLEASE_BONUS}s (usage ${pleaseCount}/${PLEASE_MAX})`, new Date());
+        startCountdown();
+      } else {
+        // Greedy response: deduct ~45s and message per request
+        totalSeconds = Math.max(0, totalSeconds - PLEASE_PENALTY);
+        zurgError.textContent = "Don't be greedy, now you lost 45 seconds.";
+        prependLogEntry(`Grunt got greedy — -${PLEASE_PENALTY}s penalty applied`, new Date());
+        startCountdown();
+      }
       zurgInput.focus();
       zurgInput.select();
       return;
@@ -548,10 +567,8 @@
   function showActivationPopup(msg, html=false){
     if(html) activationMessage.innerHTML = msg; else activationMessage.textContent = msg;
     activationPopup.style.display = 'flex';
-    // If html contains the popup-media layout, ensure sizing + center
     const popupCard = activationPopup.querySelector('.popup-card');
     if(popupCard){
-      // If provided HTML contains .popup-media, ensure OK button is focused
       setTimeout(()=> closeActivationPopup.focus(), 50);
     }
   }
@@ -572,7 +589,6 @@
       showActivationPopup("Zurg: 'Do not poke the ray.'");
       prependLogEntry('Ray box poked while active (blocked)', new Date());
     } else {
-      // New popup HTML — uses the responsive .popup-media layout and bounded max-width
       const html = `<div class="popup-media" style="text-align:center">
         <div class="popup-title">Happy 10th Birthday Audria!</div>
         <img class="popup-gif" src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExdHhleWxlbmlzMnI0cG5kcmc5c3FsY2lhNnZtbmprZzVnbjNkOGVteCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/879RsXB8GvEuY95LNl/giphy.gif" alt="confetti gif">
